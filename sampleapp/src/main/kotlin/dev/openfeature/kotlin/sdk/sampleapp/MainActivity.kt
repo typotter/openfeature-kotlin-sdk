@@ -43,6 +43,8 @@ import dev.openfeature.kotlin.sdk.ImmutableContext
 import dev.openfeature.kotlin.sdk.OpenFeatureAPI
 import dev.openfeature.kotlin.sdk.OpenFeatureStatus
 import dev.openfeature.kotlin.sdk.Value
+import dev.openfeature.kotlin.sdk.hooks.LoggingHook
+import dev.openfeature.kotlin.sdk.logging.LoggerFactory
 import dev.openfeature.kotlin.sdk.sampleapp.ui.theme.OpenFeatureTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -55,6 +57,18 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Create logger for OpenFeature
+        val logger = LoggerFactory.getLogger("OpenFeature")
+
+        // Add LoggingHook to demonstrate logging functionality
+        val loggingHook = LoggingHook<Any>(
+            logger = logger,
+            logEvaluationContext = true,  // Log context (can be toggled in UI)
+            logTargetingKey = true         // Log targeting key (can be toggled in UI)
+        )
+        OpenFeatureAPI.addHooks(listOf(loggingHook))
+
         lifecycleScope.launch {
             OpenFeatureAPI.setProviderAndWait(exampleProvider)
             OpenFeatureAPI.statusFlow.collect {
@@ -132,10 +146,63 @@ fun MainPage(
 
 @Composable
 fun Hooks() {
-    Column(modifier = Modifier.fillMaxSize()) {
-        Row {
-            Text(text = "Hooks demo not yet implemented")
-        }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            text = "Logging Hook Demo",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        Text(
+            text = "The LoggingHook is active and logging all flag evaluations to Logcat.",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        Text(
+            text = "Configuration:",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Text(
+            text = "• Logger: Android LoggerFactory (Logcat)",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+        Text(
+            text = "• Log Evaluation Context: Enabled",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+        Text(
+            text = "• Log Targeting Key: Enabled",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        Text(
+            text = "View Logs:",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Text(
+            text = "adb logcat -s \"OpenFeature:*\"",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        Text(
+            text = "Try evaluating flags in the 'Evaluations' tab to see logging in action!",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
     }
 }
 
